@@ -1,0 +1,116 @@
+---
+title: "causal_experiment"
+author: "Chieh Hsin(Jessica) Cheng"
+date: "2023-09-26"
+output:
+  pdf_document: default
+  html_document: default
+---
+## (a) If the control and treatment groups are similar across tenure, premium_user, and num_posts_before metrics.
+### (a-1) tenure 
+```{r}
+library(dplyr)
+library(ggplot2)
+data_1 <- read.csv('data_Q1.csv')
+t.test(tenure ~ treated, data_1)
+```
+#### Based on p-value: 0.1699, which is greater than the typical significance level 0.05, we do not reject null hypothesis. Hence, there are no significant difference between two groups.
+
+### (a-2) premium_user
+```{r}
+t.test(premium_user ~ treated, data_1)
+```
+#### Based on p-value: 0.3377, which is greater than the typical significance level 0.05, we do not reject null hypothesis. Hence, there are no significant difference between two groups.
+
+### (a-2) num_post_before
+```{r}
+t.test(num_post_before ~ treated, data_1)
+```
+#### Based on p-value: 0.5738, which is greater than the typical significance level 0.05, we do not reject null hypothesis. Hence, there are no significant difference between two groups.
+
+## (b) Does getting reddit gold increase likelihood that the user will post (use the posted metric as the dependent variable and treated as the independent variable)? Use a simple linear model (not a logit) for the analysis
+
+```{r}
+summary(lm(posted ~ treated, data_1))
+```
+#### Posted = 0.55 + 0.063*treated
+#### 0.55 is the mean of group 0 (control group) and 0.063 is the difference two groups
+#### Look at p-value: 0.0064, which is smaller than 0.05, meaning that the feature made significant difference
+
+## (c) What sorts of users are more likely to increase their contribution? (use the tenure and the first_timer variables)
+
+```{r}
+summary(lm(posted ~ first_timer * treated, data_1))
+```
+
+#### Here I mainly focus on the interaction term(first_timer and treated). Look at p-value: 0.0182, which is smaller than 0.05. This suggests that the relationship between "first_timer*treated" and the likelihood of posting is statistically significant based on the results.
+#### The coefficient of interactive term is 0.109 suggests that the interaction has a positive effect on contributions. Meaning that first-time users who are treated tend to contribute more.
+
+```{r}
+summary(lm(posted ~ tenure * treated, data_1))
+```
+#### Here I mainly focus on the interaction term(tenure and treated). Look at p-value: 0.06174, which is greater than 0.05. This suggests that the relationship between "tenure*treated" and the likelihood of posting is not statistically significant based on the results. Meaning that the inteactive term has no strong relationship with the posted.
+### Also, the coefficient of the interactive term -6.275e-05 suggests that the interaction has a negative effect on contributions. Meaning that users with longer tenure who are treated tend to contribute slightly less.
+
+### In conclusion, users who are first timer user and treated with Reddit gold would be mroe likely to increase their contribution.
+
+## (d) Is the SUTVA assumption likely to be violated in the experiment? 
+#### - Interactions among users: Reddit has a compex ecosystem with various subreddits, user communities, and dynamics. Changes in behavior in one part of the platform can potentially spikk over or affect the behavior of uses in other parts of the platform.
+
+
+# Q2
+## (a) Use a t-test to see if there is a statistical difference in the pre-period between schools in the treatment (bal = 1) and control (bal = 0). This will check if randomization has been done correctly. To do this, calculate the average normalized test score(norm) for the pre period (pre = 1) for math (test_type = 0). Is there a statistical difference between students who got the Balsakhi program and did not get the program? Perform the same test for language (test_type = 1). 
+```{r}
+data_2 <- read.csv('data_Q2.csv')
+pre_math_data <- subset(data_2, pre == 1 & test_type == 0 & std == 3)
+
+t.test(norm ~ bal, data= pre_math_data)
+```
+#### Based on p-value: 0.3152, which is larger than the typical significance level 0.05, we don't reject null hypothesis. Hence, there are no significant difference between two groups.
+
+
+```{r}
+pre_language_data <- subset(data_2, pre == 1 & test_type == 1 & std == 3)
+
+t.test(norm ~ bal, data= pre_language_data)
+```
+#### Based on p-value: 0.002466, which is smaller than the typical significance level 0.05, we do reject null hypothesis. Hence, there are significant difference between two groups.
+
+
+#### (b) Calculate the average test scores for the post period (post = 1) for math for treatment and control. Is there a statistical difference between students in the two groups of schools? Use a ttest model to test the increase. Perform the same analysis for language test scores. 
+
+```{r}
+post_math_data <- subset(data_2, post == 1 & test_type == 0 & std == 3)
+
+t.test(norm ~ bal, data= post_math_data)
+```
+#### Based on p-value: 1.343e-07, which is smaller than the typical significance level 0.05, we do reject null hypothesis. Hence, there are significant difference between two groups after the program.
+
+
+```{r}
+post_language_data <- subset(data_2, post == 1 & test_type == 1 & std == 3)
+
+t.test(norm ~ bal, data= post_language_data)
+```
+#### Based on p-value: 2.008e-05, which is smaller than the typical significance level 0.05, we do reject null hypothesis. Hence, there are significant difference between two groups.
+
+## c) Can you conclude if the Balsakhi program increase test scores in reading and mathematics? 
+### Before the program implementation, there are no difference between two groups in mathematics. However, after the program, there are significant difference between two groups in math test. Hence, we could conclude that the program indee increase test scors in mathematics when others conditions were fixed.
+
+### When it comes to reading test(language), there are difference between two groups before the program. After the program, the p-value is extermely low, much less than 0.05, indicating a highly significant difference in test scorees between the two groups. Therefore, it appears that the Balskhi program has increased test scores. However, we should be cautious when making decision based on this result.
+
+## d) Is the SUTVA assumption viloated in the example?
+#### Yes. The assumption might be viloated in the example. 
+#### - Inference between students: if students in the treatment group shared resources or knowledge with students in the control group, it could affect the control group's outcomes.
+#### - Spillover Effect: If the presence of the Balsakhi program in one school had spillover effects on nearby schools or classrooms, leading to unintened consequences on test scores, it could violate the SUTVA assumption.
+
+
+
+
+
+
+
+
+
+
+
